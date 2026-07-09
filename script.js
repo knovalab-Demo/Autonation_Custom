@@ -1,3 +1,103 @@
+/* ============================================================
+   AUTONATION CUSTOM — SCRIPT
+   1. Navbar scroll & mobile menu
+   2. Smooth scroll / active link
+   3. Scroll-triggered animations
+   4. Animated counters
+   5. Hero parallax
+   6. Gallery filter + lightbox
+   7. Before/After slider
+   8. Contact form
+   9. Back to top
+   10. Footer year
+================================================================ */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ---------- 1. NAVBAR SCROLL & MOBILE MENU ---------- */
+  const navbar = document.getElementById('navbar');
+  const navToggle = document.getElementById('navToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  const onScroll = () => {
+    navbar.classList.toggle('is-scrolled', window.scrollY > 40);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  navToggle.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('is-open');
+    navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+
+  document.querySelectorAll('.mobile-menu__links a, .mobile-menu__cta').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    });
+  });
+
+  /* ---------- 2. ACTIVE NAV LINK ON SCROLL ---------- */
+  const sections = document.querySelectorAll('main section[id], .hero[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+
+  sections.forEach(section => sectionObserver.observe(section));
+
+  /* ---------- 3. SCROLL-TRIGGERED ANIMATIONS ---------- */
+  const animatedEls = document.querySelectorAll('[data-animate]');
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = el.getAttribute('data-delay') || 0;
+        setTimeout(() => el.classList.add('is-visible'), Number(delay));
+        revealObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  animatedEls.forEach(el => revealObserver.observe(el));
+
+  /* ---------- 4. ANIMATED COUNTERS ---------- */
+  const counters = document.querySelectorAll('.stat__number');
+
+  const animateCounter = (el) => {
+    const target = parseFloat(el.getAttribute('data-count'));
+    const suffix = el.getAttribute('data-suffix') || '';
+    const decimals = Number(el.getAttribute('data-decimal') || 0);
+    const duration = 1600;
+    const start = performance.now();
+
+    const tick = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = target * eased;
+      el.textContent = value.toFixed(decimals) + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toFixed(decimals) + suffix;
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        counterObserver.unobserve(entry.target);
       }
     });
   }, { threshold: 0.5 });
